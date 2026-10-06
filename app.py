@@ -1,7 +1,7 @@
 """
 Banking Customer Intelligence & Churn Analytics
 Run:  streamlit run app.py
-Full data-science flow: load -> clean -> EDA -> segments -> feature engineering
+My data-science flow of my project: load -> clean -> EDA -> segments -> feature engineering
 -> model comparison -> evaluation -> business (profit) optimisation -> scoring.
 """
 from pathlib import Path
@@ -26,7 +26,7 @@ BG, SKY, ORANGE, GREEN, CARD = "#0F172A", "#38BDF8", "#F97316", "#22C55E", "#E0E
 
 st.set_page_config(page_title=TITLE, page_icon="🏦", layout="wide")
 
-# ------------------------------------------------------------------ styling
+#styling here got allittle help from AI
 CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -97,7 +97,7 @@ section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) * 
 st.markdown(CSS, unsafe_allow_html=True)
 
 
-# ------------------------------------------------------------------ html helpers
+#html helpers
 def card(title, body, kind=""):
     st.markdown(f'<div class="card {kind}"><h4>{title}</h4><p>{body}</p></div>', unsafe_allow_html=True)
 
@@ -129,7 +129,7 @@ def style(fig, h=340, legend=True):
     return fig
 
 
-# ------------------------------------------------------------------ data
+#data
 @st.cache_data
 def load_data(path_or_file):
     return pd.read_csv(path_or_file)
@@ -146,7 +146,7 @@ if path is None:
 else:
     raw = load_data(path)
 
-# ------------------------------------------------------------------ cleaning + features
+#cleaning + features
 DROP = ["RowNumber", "CustomerId", "Surname"]
 
 
@@ -206,7 +206,7 @@ M = train(X, y)
 best, res = M["best"], M["res"]
 churn_rate = y.mean() * 100
 
-# ------------------------------------------------------------------ sidebar navigation
+#sidebar navigation
 SLIDES = ["1  Executive summary", "2  Data & quality", "3  Exploratory analysis", "4  Customer segments",
           "5  Feature engineering", "6  Model comparison", "7  Evaluation & profit", "8  Risk scoring",
           "9  Decisions & actions"]
@@ -228,13 +228,13 @@ with st.sidebar:
 
 slide = SLIDES.index(st.session_state.nav)
 
-# precomputed segment stats used across slides
+#precomputed segment stats used across slides
 df["Risk"] = M["oof"]
 df["Tier"] = pd.cut(df["Risk"], [-1, .3, .6, 2], labels=["Low", "Medium", "High"])
 bal_lost = df.loc[df.Exited == 1, "Balance"].sum()
 seg = lambda col: df.groupby(col, observed=True)["Exited"].mean().mul(100)
 
-# ================================================================== 1 EXECUTIVE SUMMARY
+#EXECUTIVE SUMMARY
 if slide == 0:
     header(TITLE, "Who is leaving, why, and what the bank should do about it.")
     c = st.columns(4)
@@ -251,7 +251,7 @@ if slide == 0:
          "Cleans the data, explores it, builds and compares four models, turns the best one into a profit-based "
          "targeting rule, then ranks every customer by risk so retention teams know whom to call first.")
 
-# ================================================================== 2 DATA & QUALITY
+#DATA & QUALITY
 elif slide == 1:
     header("Data & quality", "Checks before any modelling.")
     c = st.columns(4)
@@ -267,7 +267,7 @@ elif slide == 1:
     with r:
         st.dataframe(df.drop(columns=["Risk", "Tier"]).describe().T.round(2), width="stretch", height=420)
 
-# ================================================================== 3 EDA
+#EDA
 elif slide == 2:
     header("Exploratory analysis", "Distribution of the target and the numeric drivers.")
     l, r = st.columns(2)
@@ -291,7 +291,7 @@ elif slide == 2:
         st.plotly_chart(style(f.update_layout(title="Correlation matrix", coloraxis_showscale=False)), width="stretch")
     card("Reading the charts", "Churners skew older and hold higher balances. Salary and credit score barely separate the two groups.")
 
-# ================================================================== 4 SEGMENTS
+#SEGMENTS
 elif slide == 3:
     header("Customer segments", f"Churn rate (%) by segment. Orange bars are above the {churn_rate:.1f}% average.")
     cols = ["Geography", "Gender", "NumOfProducts", "IsActiveMember", "AgeBand", "HasCrCard"]
@@ -306,7 +306,7 @@ elif slide == 3:
             col.plotly_chart(style(f.update_layout(title=name), h=300, legend=False), width="stretch")
     card("So what", "Risk concentrates in Germany, in customers aged 41-60, in those holding 3-4 products, and in inactive members.", "warn")
 
-# ================================================================== 5 FEATURE ENGINEERING
+#FEATURE ENGINEERING
 elif slide == 4:
     header("Feature engineering", "Four ratios added to the raw fields, plus one-hot country and gender.")
     l, r = st.columns([1, 1.2])
@@ -323,7 +323,7 @@ elif slide == 4:
         f.update_layout(title="Correlation of each feature with churn")
         st.plotly_chart(style(f, h=520, legend=False), width="stretch")
 
-# ================================================================== 6 MODEL COMPARISON
+#MODEL COMPARISON
 elif slide == 5:
     header("Model comparison", "Four algorithms, same split, same features. Ranked by ROC-AUC.")
     c = st.columns(4)
@@ -348,7 +348,7 @@ elif slide == 5:
         st.plotly_chart(style(f), width="stretch")
     st.dataframe(res.style.format({c: "{:.3f}" for c in res.columns[1:]}), width="stretch", hide_index=True)
 
-# ================================================================== 7 EVALUATION & PROFIT
+#EVALUATION & PROFIT
 elif slide == 6:
     header("Evaluation & profit", f"{M['best_name']}: what drives churn and where to set the contact threshold.")
     l, r = st.columns(2)
@@ -386,7 +386,7 @@ elif slide == 6:
     card("Recommendation", f"Contact customers scoring above <b>{ts[k]:.2f}</b> (about {n_contact:,} people). "
          f"Expected profit under these assumptions: <b>{prof[k]:,.0f}</b>.", "good" if prof[k] > 0 else "warn")
 
-# ================================================================== 8 RISK SCORING
+#RISK SCORING
 elif slide == 7:
     header("Risk scoring", "Describe a customer and get a live churn risk and next best action.")
     l, r = st.columns([1.1, 1])
@@ -418,7 +418,7 @@ elif slide == 7:
         else:
             card("Low risk", "Keep servicing as normal. Good candidate for a cross-sell conversation.", "good")
 
-# ================================================================== 9 DECISIONS
+#DECISIONS
 else:
     header("Decisions & actions", "Every customer scored out-of-fold, then grouped into action tiers.")
     t = df.groupby("Tier", observed=True).agg(Customers=("Exited", "size"), ActualChurn=("Exited", "mean"),
